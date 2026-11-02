@@ -189,7 +189,7 @@ describe('chooseAccount', () => {
     expect(t.logs.filter((l) => l === WARNING)).toHaveLength(2);
   });
 
-  test('new account: stops and saves nothing if wallet.jar and dag4 addresses differ', async () => {
+  test('new account: stops and saves nothing if wallet.jar and derived addresses differ', async () => {
     const {wallet, seen} = recordingWallet(OTHER);
     const t = makeDeps(addSteps(), {wallet});
     await expect(chooseAccount(t.deps)).rejects.toThrow(/does not match/);

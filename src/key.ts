@@ -1,7 +1,6 @@
 import crypto from 'node:crypto';
 import * as asn1js from 'asn1js';
 import * as pkijs from 'pkijs';
-import {keyStore} from '@stardust-collective/dag4-keystore';
 
 export class InvalidKeyError extends Error {
   constructor() {
@@ -21,8 +20,30 @@ export function normalizePrivateKey(input: string): string {
   return s;
 }
 
+const BASE58_ALPHABET = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+
+// Bitcoin-alphabet base58; each leading zero byte becomes a leading '1'.
+export function base58Encode(bytes: Uint8Array): string {
+  let zeros = 0;
+  while (zeros < bytes.length && bytes[zeros] === 0) zeros++;
+  let n = 0n;
+  for (const b of bytes) n = (n << 8n) | BigInt(b);
+  let out = '';
+  while (n > 0n) { out = BASE58_ALPHABET[Number(n % 58n)] + out; n /= 58n; }
+  return '1'.repeat(zeros) + out;
+}
+
+// Derived from @stardust-collective/dag4-keystore 2.8.1 (MIT licence; package.json author: "Frank Fox";
+// the package ships no LICENSE file), getDagAddressFromPublicKey.
 export function deriveAddress(hex: string): string {
-  return keyStore.getDagAddressFromPrivateKey(hex);
+  const ecdh = crypto.createECDH('secp256k1');
+  ecdh.setPrivateKey(hex, 'hex');
+  const pkcsPrefix = Buffer.from('3056301006072a8648ce3d020106052b8104000a034200', 'hex');
+  const der = Buffer.concat([pkcsPrefix, ecdh.getPublicKey(null, 'uncompressed')]);
+  const hash = base58Encode(crypto.createHash('sha256').update(der).digest());
+  const end = hash.slice(-36);
+  const sum = [...end].reduce((acc, c) => (c >= '0' && c <= '9' ? acc + Number(c) : acc), 0);
+  return `DAG${sum % 9}${end}`;
 }
 
 export function validatePassword(password: string): true | string {

@@ -1,5 +1,5 @@
 import {expect, test} from 'vitest';
-import {InvalidKeyError, buildP12, deriveAddress, normalizePrivateKey, validatePassword} from '../src/key.js';
+import {InvalidKeyError, base58Encode, buildP12, deriveAddress, normalizePrivateKey, validatePassword} from '../src/key.js';
 
 const K = '11'.repeat(32);
 
@@ -15,7 +15,7 @@ test('rejects bad input without echoing it', () => {
   }
 });
 
-test('deriveAddress matches dag4', () => {
+test('deriveAddress gives the known address for a fixed key', () => {
   expect(deriveAddress(K)).toMatch(/^DAG/);
   expect(deriveAddress(K)).toBe('DAG34CEZdkmwK9dQu3h5pCYZ7GZGf5x24ULKsQEP');
 });
@@ -30,4 +30,13 @@ test('validatePassword', () => {
   expect(validatePassword('short')).not.toBe(true);
   expect(validatePassword('pässwörd-long')).not.toBe(true);
   expect(validatePassword(`it's a "good" one`)).toBe(true);
+});
+
+test('base58Encode known vectors', () => {
+  expect(base58Encode(new Uint8Array([]))).toBe('');
+  expect(base58Encode(Buffer.from('00', 'hex'))).toBe('1');
+  expect(base58Encode(Buffer.from('0000', 'hex'))).toBe('11');
+  expect(base58Encode(Buffer.from('00000102', 'hex'))).toBe('11' + base58Encode(Buffer.from('0102', 'hex')));
+  expect(base58Encode(Buffer.from('0102', 'hex'))).toBe('5T');
+  expect(base58Encode(Buffer.from('hello world'))).toBe('StV1DL6CwTryKyV');
 });

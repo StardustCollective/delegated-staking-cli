@@ -31,7 +31,7 @@ const params = (over: Partial<{name: string; description: string}> = {}) =>
   createNodeParams(ctx, {name: 'Test', description: 'Desc', parent: ZERO, ...over});
 
 describe('wallet.jar', () => {
-  test('address matches dag4', async () => expect(await showAddress(ctx)).toBe(deriveAddress(KEY)));
+  test('address matches wallet.jar', async () => expect(await showAddress(ctx)).toBe(deriveAddress(KEY)));
 
   test('keytool export returns the original key', async () => {
     // keytool.jar writes id_ecdsa.hex next to the keystore, so give it a copy in its own directory.

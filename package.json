@@ -32,7 +32,6 @@
   },
   "dependencies": {
     "@inquirer/prompts": "^8.7.5",
-    "@stardust-collective/dag4-keystore": "^2.8.1",
     "asn1js": "^4.0.0",
     "pkijs": "^4.0.1"
   },
