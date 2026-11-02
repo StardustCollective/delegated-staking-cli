@@ -1,0 +1,35 @@
+# Drives the CLI through a pseudo-terminal. The secrets come in through the environment and are
+# removed from it before the CLI starts. Terminal echo is off at the secret prompts.
+set key $env(DSC_E2E_KEY)
+set pw $env(DSC_E2E_PASSWORD)
+unset env(DSC_E2E_KEY)
+unset env(DSC_E2E_PASSWORD)
+set cli [lindex $argv 0]
+
+proc fail {step} {
+  puts "\nE2E TIMEOUT at step: $step"
+  exit 101
+}
+
+set timeout 600
+spawn $cli
+expect -re {Private key} {} timeout { fail "download wallet.jar and reach the private key prompt (10 min)" }
+set timeout 60
+send -- "$key\r"
+expect "Choose a password" {} timeout { fail "choose a password prompt" }
+send -- "$pw\r"
+expect "again" {} timeout { fail "confirm password prompt" }
+send -- "$pw\r"
+set timeout 120
+expect "Is this the address" {} timeout { fail "address confirmation prompt" }
+send -- "y\r"
+expect -re {\?[^\n]*Name} {} timeout { fail "name prompt (registration lookup)" }
+send -- "  e2e-linux-test  \r"
+expect -re {\?[^\n]*Description} {} timeout { fail "description prompt" }
+send -- "End to end test from a new unfunded key\r"
+expect "Sign and send" {} timeout { fail "sign and send prompt" }
+send -- "y\r"
+set timeout 180
+expect eof
+lassign [wait] pid spawnid oserror code
+exit $code

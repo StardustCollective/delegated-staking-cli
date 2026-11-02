@@ -28,6 +28,7 @@
     "build": "rm -rf dist && tsc && chmod 755 dist/cli.js",
     "prepack": "npm run build",
     "test": "vitest run --exclude test/integration",
+    "test:e2e-linux": "bash scripts/e2e-linux.sh",
     "test:integration": "scripts/fetch-test-jars.sh && vitest run test/integration --testTimeout=60000"
   },
   "dependencies": {
