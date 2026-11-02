@@ -4,8 +4,6 @@ Register a Constellation mainnet account for delegated staking, without running 
 
 This is a temporary tool. Stargazer Wallet will offer registration directly, and this project will be retired when it does.
 
-> **Status: release candidate.** A release candidate is built and tested, and is waiting for Frank's manual tests before it's published to npm. Until then, the `npx` command below won't work. See the [design document](docs/superpowers/specs/2026-11-02-delegated-staking-cli-design.md).
-
 ## Requirements
 
 - **A minimum balance in the account you register from:** 250,000 DAG until about November 14, 2026, then 1,000,000 DAG.
