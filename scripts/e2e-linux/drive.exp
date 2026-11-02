@@ -30,6 +30,6 @@ send -- "End to end test from a new unfunded key\r"
 expect "Sign and send" {} timeout { fail "sign and send prompt" }
 send -- "y\r"
 set timeout 180
-expect eof
+expect eof {} timeout { fail "CLI did not finish after Sign and send (3 min)" }
 lassign [wait] pid spawnid oserror code
 exit $code

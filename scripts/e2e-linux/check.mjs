@@ -18,28 +18,35 @@ const serverLine = text.split('\n').find((l) => l.includes('InsufficientRegistra
 
 if (code !== 1) failures.push(`exit code was ${code}, expected 1`);
 if (!serverLine) failures.push('no InsufficientRegistrationBalance in the output');
-if (!text.includes('balance=0')) failures.push('no balance=0 in the output');
+if (serverLine && !(serverLine.includes('Server response:') && serverLine.includes('balance=0'))) {
+  failures.push('the server line lacks "Server response:" or balance=0');
+}
+if (!text.includes('Your balance (0 DAG) is under the minimum')) failures.push('no explanation ("Your balance (0 DAG) is under the minimum") in the output');
 if (!address) failures.push('no address in the output');
 for (const [name, needle] of [['key (lowercase)', key], ['key (uppercase)', key.toUpperCase()], ['password', password]]) {
   if (raw.includes(needle)) failures.push(`the output contains the ${name}`);
 }
 if (address) {
-  const dir = path.join(home, '.delegated-staking-cli', address);
+  const root = path.join(home, '.delegated-staking-cli');
+  const dir = path.join(root, address);
   const mode = (p) => (fs.statSync(p).mode & 0o777).toString(8);
   try {
     if (mode(path.join(dir, 'key.p12')) !== '600') failures.push(`key.p12 mode is ${mode(path.join(dir, 'key.p12'))}, expected 600`);
+    if (mode(root) !== '700') failures.push(`${root} mode is ${mode(root)}, expected 700`);
     if (mode(dir) !== '700') failures.push(`account directory mode is ${mode(dir)}, expected 700`);
   } catch {
     failures.push(`key.p12 is missing for ${address}`);
   }
 }
 
-console.log('----- transcript (escape codes removed) -----');
-console.log(text.trim());
+// The raw transcript is never printed: the secrets are redacted first, even when none was found.
+const redact = (t) => [key, key.toUpperCase(), password].reduce((acc, secret) => acc.replaceAll(secret, '[REDACTED]'), t);
+console.log('----- transcript (escape codes removed, secrets redacted) -----');
+console.log(redact(text).trim());
 console.log('----- result -----');
 console.log(`Address:    ${address ?? '(none)'}`);
 console.log(`Exit code:  ${code}`);
-console.log(`Server:     ${serverLine?.trim() ?? '(none)'}`);
+console.log(`Server:     ${serverLine ? redact(serverLine).trim() : '(none)'}`);
 if (failures.length) {
   console.log('FAIL');
   for (const f of failures) console.log(`  - ${f}`);
