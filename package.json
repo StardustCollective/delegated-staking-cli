@@ -1,0 +1,40 @@
+{
+  "name": "@stardust-collective/delegated-staking-cli",
+  "version": "0.1.0",
+  "description": "Register a Constellation mainnet account for delegated staking, without running a node.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "delegated-staking-cli": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/StardustCollective/delegated-staking-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/StardustCollective/delegated-staking-cli/issues"
+  },
+  "homepage": "https://github.com/StardustCollective/delegated-staking-cli#readme",
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest run --exclude test/integration",
+    "test:integration": "vitest run test/integration"
+  },
+  "dependencies": {
+    "@stardust-collective/dag4-keystore": "^2.8.1",
+    "asn1js": "^4.0.0",
+    "pkijs": "^4.0.1"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.6",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.0"
+  }
+}
