@@ -24,7 +24,7 @@
   "scripts": {
     "build": "tsc",
     "test": "vitest run --exclude test/integration",
-    "test:integration": "vitest run test/integration"
+    "test:integration": "scripts/fetch-test-jars.sh && vitest run test/integration --testTimeout=60000"
   },
   "dependencies": {
     "@stardust-collective/dag4-keystore": "^2.8.1",
