@@ -1,0 +1,1 @@
+"InsufficientRegistrationBalance{source=DAG7r19DkWQSsmDMM1CGh4seEVdPqYB8hkgs82i1,balance=0,minimum=25000000000000}"
