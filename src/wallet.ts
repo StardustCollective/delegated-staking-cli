@@ -21,14 +21,25 @@ export class WalletError extends Error {
 
 type RunResult = {stdout: string; stderr: string; code: number | null; spawnError?: NodeJS.ErrnoException};
 
-function childEnv(ctx: KeyContext): NodeJS.ProcessEnv {
-  return {
-    ...process.env,
+// On Linux the JVM decodes command-line arguments using the locale, so a C/POSIX locale
+// would mangle non-ASCII names. macOS always decodes them as UTF-8.
+export function buildChildEnv(
+  ctx: KeyContext,
+  base: NodeJS.ProcessEnv = process.env,
+  platform: NodeJS.Platform = process.platform,
+): NodeJS.ProcessEnv {
+  const env: NodeJS.ProcessEnv = {
+    ...base,
     CL_KEYSTORE: ctx.keystorePath,
     CL_KEYALIAS: 'alias',
     CL_PASSWORD: ctx.password,
     CL_APP_ENV: 'mainnet',
   };
+  if (platform === 'linux') {
+    const locale = base.LC_ALL || base.LC_CTYPE || base.LANG || '';
+    if (!/utf-?8/i.test(locale)) env.LC_ALL = 'C.UTF-8';
+  }
+  return env;
 }
 
 function run(ctx: KeyContext, args: string[], cwd: string): Promise<RunResult> {
@@ -36,7 +47,7 @@ function run(ctx: KeyContext, args: string[], cwd: string): Promise<RunResult> {
     execFile(
       'java',
       ['-jar', ctx.jarPath, ...args],
-      {env: childEnv(ctx), cwd, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024},
+      {env: buildChildEnv(ctx), cwd, encoding: 'utf8', maxBuffer: 10 * 1024 * 1024},
       (err, stdout, stderr) => {
         const e = err as (NodeJS.ErrnoException & {code?: number | string}) | null;
         if (!e) return resolve({stdout, stderr, code: 0});
