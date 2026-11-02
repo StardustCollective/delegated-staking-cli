@@ -4,14 +4,14 @@ Register a Constellation mainnet account for delegated staking, without running 
 
 This is a temporary tool. Stargazer Wallet will offer registration directly, and this project will be retired when it does.
 
-> **Status: in development.** The tool isn't published yet, so the install and usage steps below describe how it's designed to work. See the [design document](docs/superpowers/specs/2026-11-02-delegated-staking-cli-design.md).
+> **Status: release candidate.** A release candidate is built and tested, and is waiting for Frank's manual tests before it's published to npm. Until then, the `npx` command below won't work. See the [design document](docs/superpowers/specs/2026-11-02-delegated-staking-cli-design.md).
 
 ## Requirements
 
 - **A minimum balance in the account you register from:** 250,000 DAG until about November 14, 2026, then 1,000,000 DAG.
 - **A private key exported from Stargazer Wallet.** Hardware wallet accounts aren't supported, because they don't export a private key.
-- **Java 21 or newer.** Signing uses Constellation's official `wallet.jar`, which the tool downloads for you.
-- **Node.js.**
+- **Java 21 or newer.** The tool checks this when it starts. Signing uses Constellation's official `wallet.jar`, which the tool downloads for you.
+- **Node.js 22 or newer.**
 - **macOS or Linux.** On Windows, use [WSL](https://learn.microsoft.com/windows/wsl/).
 
 You don't need a node, and you don't need to be on the seedlist.
@@ -21,6 +21,8 @@ You don't need a node, and you don't need to be on the seedlist.
 ```bash
 npx @stardust-collective/delegated-staking-cli
 ```
+
+The tool is interactive: it asks for everything it needs at prompts, and has no options. Press Ctrl-C at any prompt to stop.
 
 ### Register
 
