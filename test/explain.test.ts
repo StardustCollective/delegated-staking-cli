@@ -49,7 +49,16 @@ test('InvalidName does not also match TooLargeName and the reverse', () => {
   expect(explainServerError('InvalidName{}')).not.toMatch(/longer than/i);
 });
 
-test('unknown text is returned unchanged', () => {
-  expect(explainServerError('SomethingElse happened')).toBe('SomethingElse happened');
-  expect(explainServerError('')).toBe('');
+test('unknown JSON-string body: unquoted and labelled, no explanation', () => {
+  expect(explainServerError('"Foo{x=1}"')).toBe('Server response: Foo{x=1}');
+});
+
+test('unknown plain text: labelled, no explanation', () => {
+  expect(explainServerError('SomethingElse happened')).toBe('Server response: SomethingElse happened');
+});
+
+test('empty or whitespace-only body gives a plain fallback', () => {
+  expect(explainServerError('')).toBe('The network rejected the request.');
+  expect(explainServerError('  \n')).toBe('The network rejected the request.');
+  expect(explainServerError('""')).toBe('The network rejected the request.');
 });

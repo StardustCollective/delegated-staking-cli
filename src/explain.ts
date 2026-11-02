@@ -32,8 +32,10 @@ function unquote(text: string): string {
 }
 
 export function explainServerError(text: string): string {
-  const shown = unquote(text);
+  const shown = unquote(text).trim();
+  if (!shown) return 'The network rejected the request.';
   const found = EXPLANATIONS.filter(([name]) => new RegExp(`\\b${name}\\b`).test(shown));
-  if (found.length === 0) return text;
-  return [...found.map(([, explain]) => explain(shown)), '', `Server response: ${shown}`].join('\n');
+  const label = `Server response: ${shown}`;
+  if (found.length === 0) return label;
+  return [...found.map(([, explain]) => explain(shown)), '', label].join('\n');
 }
