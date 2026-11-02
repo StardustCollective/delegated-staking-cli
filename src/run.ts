@@ -35,7 +35,8 @@ function scrubber(secrets: string[]) {
   return (text: string, opts: {anyHex?: boolean} = {}): string => {
     let t = text;
     for (const s of secrets) {
-      if (!s) continue;
+      // Short entries (a mistyped key or password) would redact ordinary letters in later messages.
+      if (s.length < 8) continue;
       t = t.split(s).join('[redacted]');
       const trimmed = s.trim();
       if (trimmed) t = t.split(trimmed).join('[redacted]');
@@ -166,13 +167,19 @@ export async function run(partial: Partial<RunDeps> = {}): Promise<number> {
     await registerOrEdit(deps, account);
     return 0;
   } catch (e) {
+    // A rejection (400) is a clear answer from the server, so explain it even after Ctrl-C.
+    if (e instanceof SubmissionRejected) {
+      error(scrub(e.message));
+      return 1;
+    }
     if (interrupted && post === 'sent') {
       error(`Stopped waiting. The registration was sent; check the staking page: ${STAKING_PAGE}`);
       return 130;
     }
-    if (interrupted && post === 'in-flight') {
+    if (post === 'in-flight') {
+      // The POST threw (timeout, 5xx, network error), so the server may still have received it.
       error(`Stopped. The registration may have been sent; check the staking page: ${STAKING_PAGE}`);
-      return 130;
+      return interrupted ? 130 : 1;
     }
     if (interrupted || isExitPrompt(e)) {
       error('Cancelled.');

@@ -261,6 +261,41 @@ describe('run', () => {
     expect(err).not.toContain('Cancelled.');
   });
 
+  test('a registration POST that fails without Ctrl-C says it may have been sent and returns 1', async () => {
+    const code = await run(deps([...ADD, ...DETAILS, {confirm: true}], {
+      api: {
+        ...deps([]).api!,
+        postRegistration: async () => {
+          throw new NetworkError('The request to the Constellation network timed out.');
+        },
+      },
+    }));
+    expect([code, err]).toEqual([1, [MAYBE_SENT]]);
+  });
+
+  test('a 400 after Ctrl-C shows the rejection, not Cancelled., and returns 1', async () => {
+    const code = await run(deps([...ADD, ...DETAILS, {confirm: true}], {
+      api: {
+        ...deps([]).api!,
+        postRegistration: async () => {
+          process.emit('SIGINT');
+          return {ok: false, message: '"TooLargeName"'};
+        },
+      },
+    }));
+    expect([code, err]).toEqual([1, ['The name is longer than 140 characters.\n\nServer response: TooLargeName']]);
+  });
+
+  test('a Ctrl-C abort while downloading wallet.jar prints Cancelled. and returns 130', async () => {
+    const code = await run(deps([], {
+      ensureWalletJar: async () => {
+        process.emit('SIGINT');
+        throw new DOMException('This operation was aborted', 'AbortError');
+      },
+    }));
+    expect([code, err]).toEqual([130, ['Cancelled.']]);
+  });
+
   test('unexpected errors print a generic message and scrub the key and password', async () => {
     const pasted = `0x${KEY.toUpperCase()}`;
     const code = await run(deps([{secret: pasted}, {secret: PASSWORD}, {secret: PASSWORD}], {

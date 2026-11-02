@@ -69,7 +69,7 @@ test('list ignores the jars directory, stray files and empty account directories
   await mkdir(s.jarCacheDir(), { recursive: true });
   await writeFile(join(root, 'stray.txt'), 'x');
   await writeFile(join(root, 'DAG7Ghth1WhWK83SB3MtXgX1LGmnuXx4PJDvrfq5'), 'x');
-  await mkdir(join(root, 'DAG2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'));
+  await mkdir(join(root, 'DAG2aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'));
   expect(await s.list()).toEqual([A, B].sort());
   expect(s.jarCacheDir()).toBe(join(root, 'jars'));
 });

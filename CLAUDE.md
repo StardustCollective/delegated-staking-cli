@@ -13,4 +13,5 @@ Plan: `docs/superpowers/plans/2026-11-02-delegated-staking-cli.md`
 - Pass the password to child processes through environment variables only: `CL_KEYSTORE`, `CL_KEYALIAS=alias`, `CL_PASSWORD`, `CL_APP_ENV=mainnet`.
 - Saved files: `~/.delegated-staking-cli/` and each account directory are mode `0700`, and `key.p12` is mode `0600`.
 - Never overwrite a saved P12 without asking.
+- `npm run test:integration` needs Java 21 and `expect` (`/usr/bin/expect` on macOS; the `expect` package on Linux).
 - Do not run `npm publish`, and do not submit a real registration.

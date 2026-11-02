@@ -59,7 +59,33 @@ describe('ensureWalletJar', () => {
     const n = f.urls.length;
     expect(await ensureWalletJar(deps)).toBe(path);
     expect(f.urls.length).toBe(n);
+    expect(warnings).toEqual(['Downloading wallet.jar 3.6.2 (about 85 MB) from GitHub...']);
+  });
+
+  test('says nothing when the cached file is used', async () => {
+    seed('3.6.2');
+    const warnings: string[] = [];
+    await ensureWalletJar({api: api('3.6.2'), fetchFn: fakeFetch().fn, cacheDir, warn: (m) => warnings.push(m)});
     expect(warnings).toEqual([]);
+  });
+
+  test('a Ctrl-C abort during the download propagates: no fallback, no fallback text', async () => {
+    seed('3.5.0');
+    const warnings: string[] = [];
+    const abortingFetch = (async () => {
+      throw new DOMException('This operation was aborted', 'AbortError');
+    }) as typeof fetch;
+    await expect(
+      ensureWalletJar({api: api('3.6.2'), fetchFn: abortingFetch, cacheDir, warn: (m) => warnings.push(m)}),
+    ).rejects.toMatchObject({name: 'AbortError'});
+    expect(warnings).toEqual(['Downloading wallet.jar 3.6.2 (about 85 MB) from GitHub...']);
+  });
+
+  test('picks the newest cached version numerically (3.10.0 beats 3.9.0)', async () => {
+    seed('3.9.0');
+    seed('3.10.0');
+    const path = await ensureWalletJar({api: api(new Error('down')), fetchFn: fakeFetch().fn, cacheDir, warn: () => {}});
+    expect(path).toBe(join(cacheDir, '3.10.0', 'wallet.jar'));
   });
 
   test('a checksum mismatch throws SetupError, keeps no file and does not fall back', async () => {
@@ -76,8 +102,9 @@ describe('ensureWalletJar', () => {
     const warnings: string[] = [];
     const path = await ensureWalletJar({api: api('3.6.2'), fetchFn: fakeFetch({status: 404}).fn, cacheDir, warn: (m) => warnings.push(m)});
     expect(path).toBe(join(cacheDir, '3.6.1', 'wallet.jar'));
-    expect(warnings).toHaveLength(1);
-    expect(warnings[0]).toContain('3.6.1');
+    expect(warnings).toHaveLength(2);
+    expect(warnings[0]).toMatch(/^Downloading wallet\.jar 3\.6\.2/);
+    expect(warnings[1]).toContain('3.6.1');
   });
 
   test('a failed version lookup also falls back', async () => {

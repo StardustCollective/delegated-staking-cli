@@ -17,7 +17,7 @@ export class SetupError extends Error {
 
 const JAVA_HELP =
   `Java ${MIN_JAVA} or newer is required.\n` +
-  '  macOS: brew install openjdk@21\n' +
+  '  macOS: brew install --cask temurin@21\n' +
   '  Linux: install a package such as openjdk-21-jre with your package manager';
 
 export function parseJavaMajor(versionOutput: string): number | null {
@@ -106,12 +106,15 @@ export async function ensureWalletJar(deps: {
 
   let jar: Buffer;
   let expected: string;
+  warn(`Downloading wallet.jar ${version} (about 85 MB) from GitHub...`);
   try {
     const base = `${RELEASES_URL}/v${version}`;
     jar = await download(fetchFn, `${base}/cl-wallet.jar`);
     const hashText = (await download(fetchFn, `${base}/cl-wallet.sha256`)).toString('utf8');
     expected = (hashText.trim().split(/\s+/)[0] ?? '').toLowerCase();
   } catch (e) {
+    // Ctrl-C: let it propagate so the caller reports "Cancelled." instead of falling back.
+    if (e instanceof Error && e.name === 'AbortError') throw e;
     return fallback(`The wallet.jar for mainnet's version ${version} could not be downloaded`, e);
   }
 

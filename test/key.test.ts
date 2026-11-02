@@ -20,6 +20,12 @@ test('deriveAddress gives the known address for a fixed key', () => {
   expect(deriveAddress(K)).toBe('DAG34CEZdkmwK9dQu3h5pCYZ7GZGf5x24ULKsQEP');
 });
 
+test('deriveAddress matches wallet.jar show-address at the edges of the key range', () => {
+  // Expected strings come from `wallet.jar show-address` on a P12 built with buildP12.
+  expect(deriveAddress('00'.repeat(31) + '01')).toBe('DAG6rkDwd7V6uboeH9fajUnue7eSsMKt4w9GiXjy');
+  expect(deriveAddress('fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140')).toBe('DAG4MbX47LV7iMdWEpx2ESCfZPjdgTg2vAafTWBH');
+});
+
 test('buildP12 returns DER with the key encrypted', async () => {
   const p12 = await buildP12(K, 'pw-Test 1');
   expect(p12[0]).toBe(0x30);

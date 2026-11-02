@@ -74,7 +74,7 @@ function fail(r: RunResult, ctx: KeyContext, what: string): never {
   const lines = scrub(all, ctx)
     .split('\n')
     .map((l) => l.trim())
-    .filter((l) => l && !/^at\s/.test(l) && !/^\.\.\. \d+ more/.test(l));
+    .filter((l) => l && !/^at\s/.test(l) && !/^\.\.\. \d+ more/.test(l) && !l.startsWith('Picked up '));
   const detail = (lines[0] ?? `exit code ${r.code}`).slice(0, 200);
   throw new WalletError(`wallet.jar ${what} failed: ${detail}`);
 }

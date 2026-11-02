@@ -10,8 +10,10 @@ This is a temporary tool. Stargazer Wallet will offer registration directly, and
 
 - **A minimum balance in the account you register from:** 250,000 DAG until about November 14, 2026, then 1,000,000 DAG.
 - **A private key exported from Stargazer Wallet.** Hardware wallet accounts aren't supported, because they don't export a private key.
-- **Java 21 or newer.** The tool checks this when it starts. Signing uses Constellation's official `wallet.jar`, which the tool downloads for you.
-- **Node.js 22 or newer.**
+- **Java 21 or newer.** The tool checks this when it starts. Signing uses Constellation's official `wallet.jar`, which the tool downloads for you. The first run downloads `wallet.jar` (about 85 MB) and caches it.
+  - macOS: `brew install --cask temurin@21`
+  - Linux: install a package such as `openjdk-21-jre` with your package manager.
+- **Node.js 22.13 or newer.**
 - **macOS or Linux.** On Windows, use [WSL](https://learn.microsoft.com/windows/wsl/).
 
 You don't need a node, and you don't need to be on the seedlist.
