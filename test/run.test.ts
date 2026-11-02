@@ -14,6 +14,8 @@ const KEY = '1f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a79881f2e3d4c5b6a7988';
 const KEY_ADDRESS = deriveAddress(KEY);
 const PASSWORD = 'correct horse battery';
 const JAR = '/fake/wallet.jar';
+const SENT = 'Stopped waiting. The registration was sent; check the staking page: https://mainnet.dagexplorer.io/staking';
+const MAYBE_SENT = 'Stopped. The registration may have been sent; check the staking page: https://mainnet.dagexplorer.io/staking';
 
 // Same shape as the error @inquirer/prompts throws when the user presses Ctrl-C at a prompt.
 class ExitPromptError extends Error {
@@ -199,7 +201,7 @@ describe('run', () => {
     expect(await tempDirsLeft()).toEqual([]);
   });
 
-  test('Ctrl-C while waiting for the registration to appear returns 130 at once', async () => {
+  test('Ctrl-C while waiting for the registration to appear says it was sent and returns 130 at once', async () => {
     let sleeps = 0;
     const code = await run(deps([...ADD, ...DETAILS, {confirm: true}], {
       sleep: () => {
@@ -208,7 +210,8 @@ describe('run', () => {
         return new Promise(() => {}); // Never settles on its own.
       },
     }));
-    expect([code, err]).toEqual([130, ['Cancelled.']]);
+    expect([code, err]).toEqual([130, [SENT]]);
+    expect(err).not.toContain('Cancelled.');
     expect(sleeps).toBe(1);
   });
 
@@ -236,12 +239,26 @@ describe('run', () => {
     try {
       const {api: _api, ...rest} = deps([...ADD, ...DETAILS, {confirm: true}]);
       const code = await run({...rest, sleep: async () => {}});
-      expect([code, err]).toEqual([130, ['Cancelled.']]);
+      expect([code, err]).toEqual([130, [SENT]]);
     } finally {
       globalThis.fetch = original;
     }
     expect(seen).toEqual([{method: 'GET', aborted: false}, {method: 'POST', aborted: false}]);
     expect(out).toContain('Sent. Hash: sent-hash');
+  });
+
+  test('Ctrl-C during a registration POST that then fails says it may have been sent', async () => {
+    const code = await run(deps([...ADD, ...DETAILS, {confirm: true}], {
+      api: {
+        ...deps([]).api!,
+        postRegistration: async () => {
+          process.emit('SIGINT');
+          throw new NetworkError('The request to the Constellation network timed out.');
+        },
+      },
+    }));
+    expect([code, err]).toEqual([130, [MAYBE_SENT]]);
+    expect(err).not.toContain('Cancelled.');
   });
 
   test('unexpected errors print a generic message and scrub the key and password', async () => {

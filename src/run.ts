@@ -1,7 +1,7 @@
 import {confirm, input, password, select} from '@inquirer/prompts';
 import {DEFAULT_ROOT, makeAccountStore} from './accounts.js';
 import {makeApi, NetworkError} from './api.js';
-import {chooseAccount, type Deps, registerOrEdit, SubmissionRejected} from './flow.js';
+import {chooseAccount, type Deps, registerOrEdit, STAKING_PAGE, SubmissionRejected} from './flow.js';
 import {checkJava, ensureWalletJar, SetupError} from './jar.js';
 import {createNodeParams, showAddress, showId, WalletError} from './wallet.js';
 
@@ -89,6 +89,9 @@ export async function run(partial: Partial<RunDeps> = {}): Promise<number> {
       return fn(...args);
     };
 
+  // Once a registration may have reached the network, Ctrl-C must not be reported as "Cancelled.".
+  let post = 'none' as 'none' | 'in-flight' | 'sent';
+
   const secrets: string[] = [];
   const scrub = scrubber(secrets);
 
@@ -113,7 +116,12 @@ export async function run(partial: Partial<RunDeps> = {}): Promise<number> {
       getBalance: guarded(api.getBalance),
       getEpoch: guarded(api.getEpoch),
       getRegistration: guarded(api.getRegistration),
-      postRegistration: guarded(api.postRegistration),
+      postRegistration: guarded(async (event: string) => {
+        post = 'in-flight';
+        const result = await api.postRegistration(event);
+        post = result.ok ? 'sent' : 'none';
+        return result;
+      }),
     },
     wallet: {
       showAddress: guarded(wallet.showAddress),
@@ -158,6 +166,14 @@ export async function run(partial: Partial<RunDeps> = {}): Promise<number> {
     await registerOrEdit(deps, account);
     return 0;
   } catch (e) {
+    if (interrupted && post === 'sent') {
+      error(`Stopped waiting. The registration was sent; check the staking page: ${STAKING_PAGE}`);
+      return 130;
+    }
+    if (interrupted && post === 'in-flight') {
+      error(`Stopped. The registration may have been sent; check the staking page: ${STAKING_PAGE}`);
+      return 130;
+    }
     if (interrupted || isExitPrompt(e)) {
       error('Cancelled.');
       return 130;

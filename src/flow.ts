@@ -33,7 +33,7 @@ export class SubmissionRejected extends Error {
 
 const KEY_WARNING =
   'Your private key controls your funds. Only use this tool from the official StardustCollective repository or npm package.';
-const STAKING_PAGE = 'https://mainnet.dagexplorer.io/staking';
+export const STAKING_PAGE = 'https://mainnet.dagexplorer.io/staking';
 const ZERO_PARENT: Ref = {hash: '0'.repeat(64), ordinal: 0};
 const MAX_TRIES = 3;
 const MAX_TEXT = 140;
